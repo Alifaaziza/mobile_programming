@@ -1,289 +1,184 @@
-import 'dart:ui'; // Untuk efek blur pada dialog
-import 'package:flutter/material.dart'; // Paket utama Flutter untuk UI
+import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const SimpleNotesApp()); // Menjalankan aplikasi utama
+  runApp(const ToDoApp());
 }
 
-// ===========================
-// APLIKASI UTAMA
-// ===========================
-class SimpleNotesApp extends StatelessWidget {
-  const SimpleNotesApp({super.key});
+class ToDoApp extends StatelessWidget {
+  const ToDoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Simple Notes',
-      debugShowCheckedModeBanner: false, // Menghilangkan banner debug
+      title: 'Mini To-Do List',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Tema aplikasi
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFD2B48C),
-          primary: const Color(0xFFB29470),
-          secondary: const Color(0xFFF5E6CC),
+          seedColor: const Color(0xFFB29470),
         ),
-        useMaterial3: true, // Menggunakan desain Material 3
-        fontFamily: 'Poppins', // Font utama
+        useMaterial3: true,
+        fontFamily: 'Poppins',
       ),
-      home: const NotesHome(), // Halaman utama
+      home: const ToDoHome(),
     );
   }
 }
 
-// ===========================
-// HALAMAN UTAMA CATATAN
-// ===========================
-class NotesHome extends StatefulWidget {
-  const NotesHome({super.key});
+class ToDoHome extends StatefulWidget {
+  const ToDoHome({super.key});
 
   @override
-  State<NotesHome> createState() => _NotesHomeState();
+  State<ToDoHome> createState() => _ToDoHomeState();
 }
 
-class _NotesHomeState extends State<NotesHome> {
-  // Controller untuk input judul dan isi catatan
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
+class _ToDoHomeState extends State<ToDoHome> {
+  final TextEditingController _taskController = TextEditingController();
+  final List<Map<String, dynamic>> _tasks = []; // Menyimpan daftar tugas
 
-  // List untuk menyimpan semua catatan
-  final List<Map<String, String>> _notes = [];
+  // Menyimpan teks yang diketik (onChanged)
+  String _typedTask = '';
 
-  // Fungsi untuk menambah catatan baru
-  void _addNote() {
-    // Jika kedua field kosong, tidak disimpan
-    if (_titleController.text.isEmpty && _contentController.text.isEmpty) return;
+  void _addTask() {
+    if (_typedTask.isEmpty) return;
 
     setState(() {
-      // Tambahkan catatan baru ke list
-      _notes.add({
-        'title': _titleController.text,
-        'content': _contentController.text,
+      _tasks.add({
+        'title': _typedTask,
+        'isDone': false,
       });
+      _typedTask = '';
+      _taskController.clear();
     });
-
-    // Kosongkan textfield
-    _titleController.clear();
-    _contentController.clear();
-
-    // Tutup dialog
-    Navigator.pop(context);
   }
 
-  // Fungsi untuk menampilkan dialog tambah catatan
-  void _showAddNoteDialog() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true, // Bisa ditutup dengan tap di luar dialog
-      barrierLabel: "Tambah Catatan",
-      barrierColor: Colors.black45, // Warna bayangan di belakang dialog
-      transitionDuration: const Duration(milliseconds: 300), // Durasi animasi
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6), // Efek blur latar belakang
-          child: Center(
-            child: Container(
-              width: 350,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF8F0),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.brown.withOpacity(0.25),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Judul dialog
-                    const Text(
-                      "Tambah Catatan",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF5C4033),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-
-                    // Input judul catatan
-                    TextField(
-                      controller: _titleController,
-                      decoration: InputDecoration(
-                        labelText: "Judul",
-                        filled: true,
-                        fillColor: const Color(0xFFFFF5E4),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    // Input isi catatan
-                    TextField(
-                      controller: _contentController,
-                      maxLines: 3,
-                      decoration: InputDecoration(
-                        labelText: "Isi Catatan",
-                        filled: true,
-                        fillColor: const Color(0xFFFFF5E4),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Tombol Simpan
-                    ElevatedButton(
-                      onPressed: _addNote,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFB29470),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 25, vertical: 10),
-                      ),
-                      child: const Text(
-                        "Simpan",
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-
-      // Efek animasi munculnya dialog
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return FadeTransition(
-          opacity: CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeInOut,
-          ),
-          child: ScaleTransition(
-            scale: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutBack,
-            ),
-            child: child,
-          ),
-        );
-      },
-    );
+  void _toggleTaskStatus(int index) {
+    setState(() {
+      _tasks[index]['isDone'] = !_tasks[index]['isDone'];
+    });
   }
 
-  // ===========================
-  // TAMPILAN UTAMA APLIKASI
-  // ===========================
+  void _deleteTask(int index) {
+    setState(() {
+      _tasks.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFFF8F0),
-
-      // AppBar di bagian atas
       appBar: AppBar(
         backgroundColor: const Color(0xFFB29470),
-        elevation: 0,
-        centerTitle: true,
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.edit_note_rounded, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              "Simple Notes",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8),
-            ),
-          ],
+        title: const Text(
+          'Mini To-Do List',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
       ),
-
-      // Body utama aplikasi
-      body: _notes.isEmpty
-          // Jika belum ada catatan, tampilkan teks
-          ? const Center(
-              child: Text(
-                "Belum ada catatan",
-                style: TextStyle(
-                    color: Color(0xFF8B7355),
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic),
-              ),
-            )
-          // Jika ada catatan, tampilkan dalam ListView
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _notes.length,
-              itemBuilder: (context, index) {
-                final note = _notes[index];
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF5E4),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.brown.withOpacity(0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(15),
-                    // Judul catatan
-                    title: Text(
-                      note['title'] ?? '',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: Color(0xFF5C4033)),
-                    ),
-                    // Isi catatan
-                    subtitle: Text(
-                      note['content'] ?? '',
-                      style: const TextStyle(
-                        color: Color(0xFF8B7355),
-                        height: 1.4,
+      body: Column(
+        children: [
+          // Input area
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _taskController,
+                    onChanged: (value) => setState(() => _typedTask = value),
+                    decoration: InputDecoration(
+                      hintText: 'Masukkan tugas...',
+                      filled: true,
+                      fillColor: const Color(0xFFFFF5E4),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    // Tombol hapus catatan
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded,
-                          color: Color(0xFFB29470)),
-                      onPressed: () {
-                        setState(() {
-                          _notes.removeAt(index); // Hapus catatan
-                        });
-                      },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _addTask,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB29470),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                );
-              },
+                  child: const Icon(Icons.add, color: Colors.white),
+                ),
+              ],
             ),
+          ),
 
-      // Tombol tambah catatan (Floating Action Button)
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFB29470),
-        onPressed: _showAddNoteDialog, // Tampilkan dialog tambah catatan
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+          // Daftar tugas dinamis
+          Expanded(
+            child: _tasks.isEmpty
+                ? const Center(
+                    child: Text(
+                      'Belum ada tugas',
+                      style: TextStyle(
+                        color: Color(0xFF8B7355),
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = _tasks[index];
+                      return GestureDetector(
+                        onTap: () => _toggleTaskStatus(index),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: task['isDone']
+                                ? const Color(0xFFE2D5C0)
+                                : const Color(0xFFFFF5E4),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.brown.withOpacity(0.15),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  task['title'],
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    decoration: task['isDone']
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                                    color: task['isDone']
+                                        ? Colors.grey
+                                        : const Color(0xFF5C4033),
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => _deleteTask(index),
+                                icon: const Icon(
+                                  Icons.delete_outline_rounded,
+                                  color: Color(0xFFB29470),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
